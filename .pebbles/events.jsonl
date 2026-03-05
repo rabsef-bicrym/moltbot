@@ -136,3 +136,10 @@
 {"type":"dep_add","timestamp":"2026-03-04T21:27:19.259789Z","issue_id":"openclaw-650","payload":{"dep_type":"blocks","depends_on":"openclaw-650.7"}}
 {"type":"dep_add","timestamp":"2026-03-04T21:27:19.315465Z","issue_id":"openclaw-650","payload":{"dep_type":"blocks","depends_on":"openclaw-650.8"}}
 {"type":"dep_add","timestamp":"2026-03-04T21:27:19.373592Z","issue_id":"openclaw-650","payload":{"dep_type":"blocks","depends_on":"openclaw-650.9"}}
+{"type":"status_update","timestamp":"2026-03-04T22:51:32.238796Z","issue_id":"openclaw-650.8","payload":{"status":"in_progress"}}
+{"type":"status_update","timestamp":"2026-03-04T22:51:33.053904Z","issue_id":"openclaw-650.7","payload":{"status":"in_progress"}}
+{"type":"status_update","timestamp":"2026-03-04T22:51:34.953839Z","issue_id":"openclaw-650.9","payload":{"status":"in_progress"}}
+{"type":"status_update","timestamp":"2026-03-04T22:51:38.012813Z","issue_id":"openclaw-650.8","payload":{"status":"in_progress"}}
+{"type":"close","timestamp":"2026-03-04T22:56:16.347085Z","issue_id":"openclaw-650.8","payload":{}}
+{"type":"close","timestamp":"2026-03-04T22:57:38.443791Z","issue_id":"openclaw-650.7","payload":{}}
+{"type":"close","timestamp":"2026-03-04T22:58:19.47981Z","issue_id":"openclaw-650.9","payload":{}}
