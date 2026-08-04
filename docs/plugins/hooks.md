@@ -288,7 +288,8 @@ Use the phase-specific hooks for new plugins:
   and any exactly-once queued injections drained for this session. Return
   `prependContext` or `appendContext`.
 - `before_prompt_build`: receives the current prompt and session messages.
-  Return `prependContext`, `appendContext`, `systemPrompt`,
+  Return `prompt` to replace the model-visible current prompt without changing
+  the persisted transcript text. Return `prependContext`, `appendContext`, `systemPrompt`,
   `prependSystemContext`, or `appendSystemContext`.
 - `heartbeat_prompt_contribution`: runs only for heartbeat turns and returns
   `prependContext` or `appendContext`. It is intended for background monitors
@@ -486,6 +487,10 @@ and `before_dispatch` contexts also expose reply metadata when the channel has
 visibility-filtered quoted message data: `replyToId`, `replyToIdFull`,
 `replyToBody`, `replyToSender`, and `replyToIsQuote`. Prefer these first-class
 fields before reading legacy metadata.
+
+For outbound sends initiated by an authenticated Gateway operator,
+`message_sending` also receives `ctx.gatewayClientScopes`. Agent and background
+delivery paths omit this field.
 
 Prefer typed `threadId` and `replyToId` fields before using channel-specific
 metadata.

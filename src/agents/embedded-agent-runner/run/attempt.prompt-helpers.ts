@@ -192,6 +192,7 @@ export async function resolvePromptBuildHookResult(params: {
           })
       : undefined);
   return {
+    prompt: promptBuildResult?.prompt ?? beforeAgentStartResult?.prompt,
     systemPrompt: promptBuildResult?.systemPrompt ?? beforeAgentStartResult?.systemPrompt,
     prependContext: joinPresentTextSegments([
       queuedContext.prependContext,

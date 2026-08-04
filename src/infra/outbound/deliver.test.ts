@@ -3342,6 +3342,42 @@ describe("deliverOutboundPayloads", () => {
     );
   });
 
+  it("threads gateway client scopes into the message_sending hook context", async () => {
+    hookMocks.runner.hasHooks.mockImplementation(
+      (hookName?: string) => hookName === "message_sending",
+    );
+    const sendText = vi.fn().mockResolvedValue({
+      channel: "matrix" as const,
+      messageId: "mx-scope",
+      roomId: "!room",
+    });
+    setActivePluginRegistry(
+      createTestRegistry([
+        {
+          pluginId: "matrix",
+          source: "test",
+          plugin: createOutboundTestPlugin({
+            id: "matrix",
+            outbound: { deliveryMode: "direct", sendText },
+          }),
+        },
+      ]),
+    );
+
+    await deliverOutboundPayloads({
+      cfg: {},
+      channel: "matrix",
+      to: "!room",
+      payloads: [{ text: "operator message" }],
+      gatewayClientScopes: ["operator.write"],
+    });
+
+    expect(hookMocks.runner.runMessageSending).toHaveBeenCalledWith(
+      expect.any(Object),
+      expect.objectContaining({ gatewayClientScopes: ["operator.write"] }),
+    );
+  });
+
   it("forwards session.key (canonical) into message_sending ctx and never falls back to policyKey", async () => {
     // Contract test for OutboundSessionContext.key semantics:
     // session.key MUST reach plugins via ctx.sessionKey, even when a

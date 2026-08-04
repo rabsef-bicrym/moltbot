@@ -194,6 +194,24 @@ describe("resolvePromptSubmissionSkipReason", () => {
 });
 
 describe("resolvePromptBuildHookResult drain cache", () => {
+  it("propagates a model-only prompt replacement from before_prompt_build", async () => {
+    hostHookStateMocks.drainPluginNextTurnInjectionContext.mockResolvedValue({
+      queuedInjections: [],
+    });
+    const result = await resolvePromptBuildHookResult({
+      config: {},
+      prompt: "original",
+      messages: [],
+      hookCtx: { sessionKey: "agent:main:main" },
+      hookRunner: {
+        hasHooks: vi.fn((name: string) => name === "before_prompt_build"),
+        runBeforePromptBuild: vi.fn(async () => ({ prompt: "replacement" })),
+      } as never,
+    });
+
+    expect(result.prompt).toBe("replacement");
+  });
+
   it("drains plugin next-turn injections at most once per runId across retry attempts", async () => {
     // Retry attempts reuse the first drain result so plugin-provided next-turn
     // context is not consumed or duplicated multiple times.

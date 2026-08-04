@@ -1070,6 +1070,7 @@ async function applyMessageSendingHook(params: {
   to: string;
   channel: Exclude<OutboundChannel, "none">;
   accountId?: string;
+  gatewayClientScopes?: readonly string[];
   replyToId?: string | null;
   threadId?: string | number | null;
   sessionKey?: string;
@@ -1106,6 +1107,7 @@ async function applyMessageSendingHook(params: {
         channelId: params.channel,
         accountId: params.accountId ?? undefined,
         conversationId: params.to,
+        ...(params.gatewayClientScopes ? { gatewayClientScopes: params.gatewayClientScopes } : {}),
         ...(params.sessionKey ? { sessionKey: params.sessionKey } : {}),
       },
     );
@@ -1672,6 +1674,7 @@ async function deliverOutboundPayloadsCore(
         to,
         channel,
         accountId,
+        gatewayClientScopes: params.gatewayClientScopes,
         replyToId: resolveCurrentReplyTo(deliveryPayload).replyToId,
         threadId: params.threadId,
         sessionKey: sessionKeyForInternalHooks,

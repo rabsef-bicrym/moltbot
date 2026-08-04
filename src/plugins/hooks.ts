@@ -372,6 +372,8 @@ export function createHookRunner(
     acc: PluginHookBeforePromptBuildResult | undefined,
     next: PluginHookBeforePromptBuildResult,
   ): PluginHookBeforePromptBuildResult => ({
+    // Keep the first defined replacement so higher-priority hooks win.
+    prompt: firstDefined(acc?.prompt, next.prompt),
     // Keep the first defined system prompt so higher-priority hooks win.
     systemPrompt: firstDefined(acc?.systemPrompt, next.systemPrompt),
     prependContext: concatOptionalTextSegments({

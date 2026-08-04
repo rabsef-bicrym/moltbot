@@ -1151,6 +1151,7 @@ describe("shouldSkipLocalCliCredentialEpoch", () => {
       const hookRunner = {
         hasHooks: vi.fn((hookName: string) => hookName === "before_prompt_build"),
         runBeforePromptBuild: vi.fn(async () => ({
+          prompt: "wrapped latest ask",
           prependContext: "trusted hook context",
           appendContext: "trusted hook tail",
         })),
@@ -1181,7 +1182,7 @@ describe("shouldSkipLocalCliCredentialEpoch", () => {
       });
 
       expect(context.params.prompt).toBe(
-        "Sender (untrusted metadata):\nsender_id=U123 trusted hook context\n\nlatest ask\n\ntrusted hook tail",
+        "Sender (untrusted metadata):\nsender_id=U123 trusted hook context\n\nwrapped latest ask\n\ntrusted hook tail",
       );
       expect(context.params.transcriptPrompt).toBe("latest ask");
       expect(context.contextEngineTurnPrompt).toBe("latest ask");

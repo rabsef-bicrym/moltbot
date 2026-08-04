@@ -2115,6 +2115,7 @@ describe("runCodexAppServerAttempt", () => {
 
   it("applies before_prompt_build to Codex developer instructions and turn input", async () => {
     const beforePromptBuild = vi.fn(async () => ({
+      prompt: "<read_only><message>hello</message></read_only>",
       systemPrompt: "custom codex system",
       prependSystemContext: "pre system",
       appendSystemContext: "post system",
@@ -2130,7 +2131,12 @@ describe("runCodexAppServerAttempt", () => {
     sessionManager.appendMessage(assistantMessage("previous turn", Date.now()));
     const harness = createStartedThreadHarness();
 
-    const run = runCodexAppServerAttempt(createParams(sessionFile, workspaceDir));
+    const params = createParams(sessionFile, workspaceDir);
+    params.messageProvider = "imessage";
+    params.messageChannel = "imessage";
+    params.currentChannelId = "+15551234567";
+    params.senderId = "+15551234567";
+    const run = runCodexAppServerAttempt(params);
     await harness.waitForMethod("turn/start");
     await new Promise<void>((resolve) => {
       setImmediate(resolve);
@@ -2141,12 +2147,23 @@ describe("runCodexAppServerAttempt", () => {
     expect(beforePromptBuild).toHaveBeenCalledOnce();
     const [hookInput, hookContext] = mockCall(beforePromptBuild, "before_prompt_build") as [
       { messages?: Array<{ role?: string }>; prompt?: string },
-      { runId?: string; sessionId?: string },
+      {
+        channel?: string;
+        chatId?: string;
+        messageProvider?: string;
+        runId?: string;
+        senderId?: string;
+        sessionId?: string;
+      },
     ];
     expect(hookInput.prompt).toBe("hello");
     expect(hookInput.messages).toEqual([]);
     expect(hookContext.runId).toBe("run-1");
     expect(hookContext.sessionId).toBe("session-1");
+    expect(hookContext.messageProvider).toBe("imessage");
+    expect(hookContext.channel).toBe("imessage");
+    expect(hookContext.chatId).toBe("+15551234567");
+    expect(hookContext.senderId).toBe("+15551234567");
     const threadStart = harness.requests.find((request) => request.method === "thread/start");
     const threadStartParams = threadStart?.params as { developerInstructions?: string } | undefined;
     const wrappedPluginSystemContext = (text: string) =>
@@ -2159,7 +2176,11 @@ describe("runCodexAppServerAttempt", () => {
       | { input?: Array<{ text?: string; text_elements?: unknown[]; type?: string }> }
       | undefined;
     expect(turnStartParams?.input).toEqual([
-      { type: "text", text: "queued context\n\nhello\n\ntail context", text_elements: [] },
+      {
+        type: "text",
+        text: "queued context\n\n<read_only><message>hello</message></read_only>\n\ntail context",
+        text_elements: [],
+      },
     ]);
   });
 

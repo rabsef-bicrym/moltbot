@@ -115,10 +115,10 @@ export async function resolveAgentHarnessBeforePromptBuildResult(params: {
     promptBuildResult?.appendContext,
     beforeAgentStartResult?.appendContext,
   ]);
-  const prompt =
-    joinPresentTextSegments([promptPrefix, params.prompt, promptSuffix]) ?? params.prompt;
+  const modelPrompt = promptBuildResult?.prompt ?? beforeAgentStartResult?.prompt ?? params.prompt;
+  const prompt = joinPresentTextSegments([promptPrefix, modelPrompt, promptSuffix]) ?? modelPrompt;
   const promptInputStart =
-    params.prompt.length === 0
+    modelPrompt.length === 0
       ? (promptPrefix?.length ?? 0)
       : promptPrefix
         ? promptPrefix.length + 2
@@ -135,7 +135,7 @@ export async function resolveAgentHarnessBeforePromptBuildResult(params: {
       ]) ?? systemPrompt,
     promptInputRange: {
       start: promptInputStart,
-      end: promptInputStart + params.prompt.length,
+      end: promptInputStart + modelPrompt.length,
     },
   };
 }

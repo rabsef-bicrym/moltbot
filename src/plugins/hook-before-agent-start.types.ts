@@ -26,6 +26,8 @@ export type PluginHookBeforePromptBuildEvent = {
 };
 
 export type PluginHookBeforePromptBuildResult = {
+  /** Replace the current model prompt without changing the persisted transcript text. */
+  prompt?: string;
   systemPrompt?: string;
   prependContext?: string;
   appendContext?: string;
@@ -42,6 +44,7 @@ export type PluginHookBeforePromptBuildResult = {
 };
 
 export const PLUGIN_PROMPT_MUTATION_RESULT_FIELDS = [
+  "prompt",
   "systemPrompt",
   "prependContext",
   "appendContext",

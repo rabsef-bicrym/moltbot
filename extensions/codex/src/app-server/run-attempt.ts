@@ -878,8 +878,11 @@ export async function runCodexAppServerAttempt(
     sessionId: params.sessionId,
     workspaceDir: params.workspaceDir,
     messageProvider: params.messageProvider ?? undefined,
+    channel: params.messageProvider ?? params.messageChannel ?? undefined,
     trigger: params.trigger,
     channelId: hookChannelId,
+    chatId: hookChannelId,
+    senderId: params.senderId ?? undefined,
     ...hookContextWindowFields,
   };
   const hookRunner = getAgentHarnessHookRunner();

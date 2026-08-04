@@ -3964,8 +3964,14 @@ export async function runEmbeddedAttempt(
         const promptBuildPrependContext = hookResult?.prependContext;
         const promptBuildAppendContext = hookResult?.appendContext;
         const hasPromptBuildContext =
-          Boolean(promptBuildPrependContext?.trim()) || Boolean(promptBuildAppendContext?.trim());
+          hookResult?.prompt !== undefined ||
+          Boolean(promptBuildPrependContext?.trim()) ||
+          Boolean(promptBuildAppendContext?.trim());
         {
+          if (hookResult?.prompt !== undefined) {
+            effectivePrompt = hookResult.prompt;
+            log.debug(`hooks: replaced prompt (${hookResult.prompt.length} chars)`);
+          }
           if (hookResult?.prependContext) {
             effectivePrompt = `${hookResult.prependContext}\n\n${effectivePrompt}`;
             log.debug(

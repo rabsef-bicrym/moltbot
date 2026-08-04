@@ -49,6 +49,33 @@ describe("resolveAgentHarnessBeforePromptBuildResult", () => {
     });
   });
 
+  it("replaces the model prompt exactly without duplicating the original input", async () => {
+    initializeGlobalHookRunner(
+      createMockPluginRegistry([
+        {
+          hookName: "before_prompt_build",
+          handler: () => ({
+            prompt: "<read_only><message>hello</message></read_only>",
+          }),
+        },
+      ]),
+    );
+
+    const result = await resolveAgentHarnessBeforePromptBuildResult({
+      prompt: "hello",
+      developerInstructions: "base instructions",
+      messages: [],
+      ctx: { channel: "imessage", chatId: "+15551234567" },
+    });
+
+    expect(result).toEqual({
+      prompt: "<read_only><message>hello</message></read_only>",
+      developerInstructions: "base instructions",
+      promptInputRange: { start: 0, end: 47 },
+    });
+    expect(result.prompt.match(/hello/g)).toHaveLength(1);
+  });
+
   it("keeps an empty input range between prepended and appended context", async () => {
     const result = await resolveAgentHarnessBeforePromptBuildResult({
       prompt: "",

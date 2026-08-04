@@ -832,6 +832,9 @@ export async function prepareCliRunContext(
         },
         hookRunner,
       });
+      if (hookResult.prompt !== undefined) {
+        preparedPrompt = hookResult.prompt;
+      }
       if (hookResult.prependContext) {
         preparedPrompt = `${hookResult.prependContext}\n\n${preparedPrompt}`;
       }
