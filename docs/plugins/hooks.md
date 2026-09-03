@@ -750,8 +750,10 @@ Use the phase-specific hooks for new plugins:
 - `agent_turn_prepare`: receives the current prompt, prepared session
   messages, and queued injections consumed for this session.
   Return `prependContext` or `appendContext`.
-- `before_prompt_build`: receives the current prompt and session messages.
-  Return `prependContext`, `appendContext`, `systemPrompt`,
+- `before_prompt_build`: receives the assembled model prompt, the exact current
+  `transcriptPrompt` when available, and session messages.
+  Return `prompt` to replace the model-visible current prompt without changing
+  the persisted transcript text. Return `prependContext`, `appendContext`, `systemPrompt`,
   `prependSystemContext`, `appendSystemContext`, or `toolsAllow`. `toolsAllow`
   can only narrow the host-resolved tool surface for the current turn; `[]`
   submits no optional tools, while omitting it leaves the existing surface unchanged.
@@ -1096,6 +1098,10 @@ and context.
 
 Prefer typed `threadId` and `replyToId` fields before using channel-specific
 metadata.
+
+For outbound sends initiated by an authenticated Gateway operator,
+`message_sending` also receives `ctx.gatewayClientScopes`. Agent and background
+delivery paths omit this field.
 
 Inbound claim and message-received events expose `media?:
 PluginHookMediaFact[]` as the canonical attachment API. Each fact can carry

@@ -5501,6 +5501,24 @@ describe("deliverOutboundPayloads", () => {
     );
   });
 
+  it("threads Gateway operator scopes into the message_sending hook context", async () => {
+    hookMocks.runner.hasHooks.mockImplementation(
+      (hookName?: string) => hookName === "message_sending",
+    );
+    installTextOutbound({ channel: "matrix", messageId: "mx-scoped", roomId: "!room" });
+
+    await deliverMatrix({
+      to: "!room",
+      payloads: [{ text: "operator message" }],
+      gatewayClientScopes: ["operator.write"],
+    });
+
+    expect(hookMocks.runner.runMessageSending).toHaveBeenCalledWith(
+      expect.any(Object),
+      expect.objectContaining({ gatewayClientScopes: ["operator.write"] }),
+    );
+  });
+
   it("forwards session.key (canonical) into message_sending ctx and never falls back to policyKey", async () => {
     // Contract test for OutboundSessionContext.key semantics:
     // session.key MUST reach plugins via ctx.sessionKey, even when a
