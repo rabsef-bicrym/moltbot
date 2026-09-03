@@ -5642,6 +5642,45 @@ describe("deliverOutboundPayloads", () => {
     expect(hookMocks.runner.runMessageSent).not.toHaveBeenCalled();
   });
 
+  it("suppresses delivery and records the enforcing plugin when a fail-closed hook fails", async () => {
+    const hookRegistry = createEmptyPluginRegistry();
+    addTestHook({
+      registry: hookRegistry,
+      pluginId: "outbound-policy",
+      hookName: "message_sending",
+      handler: vi.fn().mockRejectedValue(new Error("policy unavailable")),
+      failurePolicy: "fail-closed",
+    });
+    const realRunner = createHookRunner(hookRegistry);
+    hookMocks.runner.hasHooks.mockImplementation((hookName?: string) =>
+      realRunner.hasHooks((hookName ?? "") as never),
+    );
+    hookMocks.runner.runMessageSending.mockImplementation((event, ctx) =>
+      realRunner.runMessageSending(event as never, ctx as never),
+    );
+    const sendMatrix = vi.fn().mockResolvedValue({ messageId: "m1", roomId: "!room:example" });
+    const outcomes: unknown[] = [];
+
+    await expect(
+      deliverMatrix({
+        deps: { matrix: sendMatrix },
+        onPayloadDeliveryOutcome: (outcome) => outcomes.push(outcome),
+      }),
+    ).resolves.toEqual([]);
+
+    expect(sendMatrix).not.toHaveBeenCalled();
+    expect(outcomes).toEqual([
+      expect.objectContaining({
+        status: "suppressed",
+        reason: "cancelled_by_message_sending_hook",
+        hookEffect: {
+          cancelReason: "message_sending_hook_failed_closed",
+          metadata: { pluginId: "outbound-policy" },
+        },
+      }),
+    ]);
+  });
+
   it("keeps text-only error payloads on the normal text path by default", async () => {
     const sendPayload = vi.fn();
     const sendText = installTextOutbound({ channel: "matrix", messageId: "mx-1" }, { sendPayload });

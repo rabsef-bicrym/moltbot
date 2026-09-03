@@ -237,16 +237,17 @@ cancellation and shutdown lifecycle.
 
 The standard runner applies these defaults **per handler**:
 
-| Hooks                                                                                                          | Default timeout                     | On thrown error or timeout                                       |
-| -------------------------------------------------------------------------------------------------------------- | ----------------------------------- | ---------------------------------------------------------------- |
-| `before_agent_run`, `before_tool_call`, `before_install`                                                       | 15 seconds                          | Fail closed: block the run, tool call, or install                |
-| `before_agent_finalize`, `before_prompt_build`, `message_sending`, `reply_payload_sending`, `resolve_exec_env` | 15 seconds                          | Log and skip the failed handler; retain other successful results |
-| `agent_end`, `before_compaction`, `after_compaction`, `skill_changed`, `skill_proposal_changed`                | 30 seconds                          | Log and continue                                                 |
-| `channel_pairing_requested`                                                                                    | 2 seconds                           | Log and continue                                                 |
-| `gateway_stop`                                                                                                 | 5 seconds                           | Log and continue shutdown                                        |
-| `skill_proposal_evaluate`                                                                                      | 120 seconds                         | Record an attributed error outcome                               |
-| Other asynchronous hooks, including claim hooks                                                                | No runner timeout unless configured | Log and continue                                                 |
-| `tool_result_persist`, `before_message_write`                                                                  | No asynchronous timeout             | Synchronous errors are logged; failed results are ignored        |
+| Hooks                                                                                           | Default timeout                     | On thrown error or timeout                                             |
+| ----------------------------------------------------------------------------------------------- | ----------------------------------- | ---------------------------------------------------------------------- |
+| `before_agent_run`, `before_tool_call`, `before_install`                                        | 15 seconds                          | Fail closed: block the run, tool call, or install                      |
+| `before_agent_finalize`, `before_prompt_build`, `reply_payload_sending`, `resolve_exec_env`     | 15 seconds                          | Log and skip the failed handler; retain other successful results       |
+| `message_sending`                                                                               | 15 seconds                          | Fail open by default; registrations may select fail-closed suppression |
+| `agent_end`, `before_compaction`, `after_compaction`, `skill_changed`, `skill_proposal_changed` | 30 seconds                          | Log and continue                                                       |
+| `channel_pairing_requested`                                                                     | 2 seconds                           | Log and continue                                                       |
+| `gateway_stop`                                                                                  | 5 seconds                           | Log and continue shutdown                                              |
+| `skill_proposal_evaluate`                                                                       | 120 seconds                         | Record an attributed error outcome                                     |
+| Other asynchronous hooks, including claim hooks                                                 | No runner timeout unless configured | Log and continue                                                       |
+| `tool_result_persist`, `before_message_write`                                                   | No asynchronous timeout             | Synchronous errors are logged; failed results are ignored              |
 
 An emitter can impose a tighter overall lifecycle budget, such as the
 shutdown `session_end` drain below. A timeout only bounds an asynchronous
@@ -1121,6 +1122,11 @@ Decision rules:
 
 - `message_sending` with `cancel: true` is terminal.
 - `message_sending` with `cancel: false` is treated as no decision.
+- A `message_sending` enforcement hook can register with
+  `{ failurePolicy: "fail-closed" }`. If that handler throws or times out,
+  OpenClaw suppresses delivery with cancel reason `message_sending_hook_failed_closed`
+  and skips lower-priority handlers. Other registrations remain fail open by
+  default.
 - Each `message_sending` handler receives the original event content. The last
   returned `content` wins; a later handler can still cancel delivery.
 - `reply_payload_sending` runs after payload normalization and before channel
